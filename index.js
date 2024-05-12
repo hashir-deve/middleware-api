@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
+const { connect } = require("./src/database/database")
 const port = 3000;
+
+require('dotenv').config({path:__dirname+'/.env'})
 
 app.use(express.json());
 
@@ -27,3 +30,13 @@ fs.readdirSync(routersPath).forEach((file) => {
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}!`);
 });
+
+async function main(){
+  await connect()
+}
+
+try {
+  main()
+} catch (error) {
+  console.log(error);
+}
