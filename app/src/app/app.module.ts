@@ -20,12 +20,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { HttpClientModule } from  '@angular/common/http';
 import { Constants } from 'src/contants/contstants';
+import { ProcessCreateComponent } from './process-create/process-create.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
-    ProcessComponent
+    ProcessComponent,
+    ProcessCreateComponent
   ],
   imports: [
     BrowserModule,
@@ -45,7 +48,8 @@ import { Constants } from 'src/contants/contstants';
     MatPaginatorModule,
     MatDialogModule,
     MatListModule,
-    HttpClientModule
+    HttpClientModule,
+    ReactiveFormsModule
   ],
   providers: [Constants],
   bootstrap: [AppComponent],

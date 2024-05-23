@@ -1,0 +1,123 @@
+<div style="height: 100%; width: 100%; background-color: #673ab7;">
+    <form [formGroup]="formGroup">
+        <div style="display: flex; height: 100%; width: 100%;">
+            <!-- *ngFor="let grandParent of formGroup.value | keyvalue; let i=index" -->
+            <mat-card class="form-card" formGroupName="form1">
+                <div class="heading">
+                    <h1 >API 1</h1>
+                    <!-- (click)="changeEditMode(grandParent)"
+                    *ngIf="!checkEditMode(grandParent)" -->
+                    <!-- <button
+                    type='button' mat-raised-button color="primary" >
+                        Edit
+                    </button> -->
+                    <!-- *ngIf="checkEditMode(grandParent)"
+                    (click)="changeEditMode(grandParent)" -->
+                    <!-- <button 
+                    type='button' mat-raised-button color="primary" >
+                        Cancel
+                    </button> -->
+                </div>
+                <div style="display: flex; flex-direction: column; padding: 2em;">
+                    <mat-form-field appearance="outline">
+                        <mat-label>URL</mat-label>
+                        <input matInput placeholder="Url" formControlName="url1"/>
+                    </mat-form-field>
+                    <ng-container *ngFor="let i of [1, 2, 3]">
+                    <!-- *ngFor="let child of grandParent.value | keyvalue; let j=index;">   -->
+                    <!-- formGroupName="{{child.key}}"
+                    *ngIf="child.key != 'isInEditMode' && child.key != 'url'" -->
+                        <div
+                        style="display: flex; justify-content: space-between;" 
+                        class="input-fields"
+                        formGroupName="{{'value'+i}}"
+                        >
+                        <mat-form-field appearance="outline">
+                            <mat-label>Key</mat-label>
+                            <input matInput placeholder="Key" formControlName="key"/>
+                        </mat-form-field>
+                        
+                        <mat-form-field appearance="outline">
+                            <mat-label>Value</mat-label>
+                            <input matInput placeholder="Value" formControlName="value" />
+                        </mat-form-field>
+                    </div>
+                </ng-container>
+                <!-- *ngIf='checkEditMode(grandParent)'
+                (click)="addNewFormGroup(grandParent)" -->
+                    <!-- <button type="button" 
+                        mat-raised-button color="primary" 
+                    >
+                        Add New Field
+                    </button> -->
+                    <!-- *ngIf='!checkEditMode(grandParent)'
+                    (click)="saveProcessMapping(grandParent)" -->
+                    <button type="button" 
+                        mat-raised-button color="primary" 
+                        (click)="saveProcessMapping()"
+                    >
+                        Save
+                    </button>
+                </div>
+            </mat-card>
+            <mat-card class="form-card" formGroupName="form2">
+                <div class="heading">
+                    <h1 >API 2</h1>
+                    <!-- (click)="changeEditMode(grandParent)"
+                    *ngIf="!checkEditMode(grandParent)" -->
+                    <!-- <button
+                    type='button' mat-raised-button color="primary" >
+                        Edit
+                    </button> -->
+                    <!-- *ngIf="checkEditMode(grandParent)"
+                    (click)="changeEditMode(grandParent)" -->
+                    <!-- <button 
+                    type='button' mat-raised-button color="primary" >
+                        Cancel
+                    </button> -->
+                </div>
+                <div style="display: flex; flex-direction: column; padding: 2em;">
+                    <mat-form-field appearance="outline">
+                        <mat-label>URL</mat-label>
+                        <input matInput placeholder="Key" formControlName="url2"/>
+                    </mat-form-field>
+                    <ng-container *ngFor="let i of [1, 2, 3]">
+                    <!-- *ngFor="let child of grandParent.value | keyvalue; let j=index;">   -->
+                    <!-- formGroupName="{{child.key}}"
+                    *ngIf="child.key != 'isInEditMode' && child.key != 'url'" -->
+                        <div
+                        style="display: flex; justify-content: space-between;" 
+                        class="input-fields"
+                        formGroupName="{{'value'+i}}"
+                        >
+                        <mat-form-field appearance="outline">
+                            <mat-label>Key</mat-label>
+                            <input matInput placeholder="Key" formControlName="key"/>
+                        </mat-form-field>
+                        
+                        <mat-form-field appearance="outline">
+                            <mat-label>Value</mat-label>
+                            <input matInput placeholder="Value" formControlName="value" />
+                        </mat-form-field>
+                    </div>
+                </ng-container>
+                <!-- *ngIf='checkEditMode(grandParent)'
+                (click)="addNewFormGroup(grandParent)" -->
+                    <!-- <button type="button" 
+                        mat-raised-button color="primary" 
+                    >
+                        Add New Field
+                    </button> -->
+                    <!-- *ngIf='!checkEditMode(grandParent)'
+                    (click)="saveProcessMapping(grandParent)" -->
+                    <button type="button" 
+                    (click)="saveProcessMapping()"
+                        mat-raised-button color="primary" 
+                    >
+                        Save
+                    </button>
+                </div>
+            </mat-card>
+        </div>
+    </form>
+</div>

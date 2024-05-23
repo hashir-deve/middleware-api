@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { HttpClient } from  '@angular/common/http';
 import { Constants } from 'src/contants/contstants';
 import { catchError, of } from 'rxjs'
@@ -8,7 +8,7 @@ import { catchError, of } from 'rxjs'
   templateUrl: './process.component.html',
   styleUrls: ['./process.component.css']
 })
-export class ProcessComponent {
+export class ProcessComponent implements OnInit{
   readonly columnMap = Object.freeze({
     id: {
       label: 'ID',
@@ -35,6 +35,12 @@ export class ProcessComponent {
 
   }
 
+  ngOnInit(): void {
+    this.getProcesses().subscribe((res) => {
+      this.dataSource = res;
+    })
+  }
+
   openColumnVisibilityModal() {
     // this._dialog
     //   .open({
@@ -54,11 +60,24 @@ export class ProcessComponent {
   getProcesses(){
    const baseUrl = this.constants.baseUrl;
 
-   return this.httpClient.get(`${baseUrl}/processes`).pipe(
+   return this.httpClient.get(`${baseUrl}/process`).pipe(
     catchError((err) => {
       //TODO - handleError
       return of(err);
     })
    );
   }
+
+  deleteProcess(id: string){
+    const baseUrl = this.constants.baseUrl;
+    this.httpClient.delete(baseUrl + `/process/${id}`).subscribe({
+      next(value) {
+        console.log(value);
+      },
+      error(err) {
+        console.log(err);
+      },
+    })
+  }
+
 }

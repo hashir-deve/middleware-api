@@ -1,0 +1,18 @@
+.form-card{
+    width: 46%;
+    margin: 2%;
+}
+
+.heading{
+    width: 90%; 
+    text-align: center; 
+    margin: 0.5em 0em;
+    padding: 0% 5%;
+    font-weight: 500;
+    display: flex; 
+    justify-content: space-between;
+}
+
+.input-fields > mat-form-field{
+    width: 46%;
+}

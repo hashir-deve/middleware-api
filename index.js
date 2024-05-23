@@ -1,4 +1,5 @@
 const express = require("express");
+var cors = require('cors')
 const app = express();
 const { connect } = require("./src/database/database")
 const port = 3000;
@@ -6,6 +7,7 @@ const port = 3000;
 require('dotenv').config({path:__dirname+'/.env'})
 
 app.use(express.json());
+app.use(cors());
 
 const path = require("path");
 const fs = require("fs");

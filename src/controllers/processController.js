@@ -5,7 +5,7 @@ const ProcessController = {
     getProcess : async (req, res, next) => {
         try 
         {
-            Process.findOne()
+            Process.find()
             .then((dbProcesses) => {
                 const processes = dbProcesses;
     
@@ -32,6 +32,17 @@ const ProcessController = {
 
         await process.save();
         return res.json("Succeeded!");
+    },
+    deleteProcess : async (req, res, next) => {
+        // const body = req.body;
+        const processId = req.params.id;
+        const deletedObject = await Process.deleteOne({ _id: processId }); // returns {deletedCount: 1}
+
+        if(deletedObject.deleteCount == 0){
+            return res.status(500).json("Coudn't find and delete document with id: ", processId);
+        }
+
+        return res.json("Successfully Deleted!");
     }
 
 }
