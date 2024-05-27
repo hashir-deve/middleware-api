@@ -12,66 +12,7 @@ const ERP_USERNAME = process.env["ERP_USERNAME"];
 const ERP_PASSWORD = process.env["ERP_PASSWORD"];
 
 
-const ListenerController = {
-
-    processRequest: async (req, res, next) => {
-        try {
-            const requestUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
-            const requestBody = req.body;
-
-            const record = await Process.findOne({ 'sourceUrl': requestUrl });
-
-            const dbProcess = record.processes;
-
-            if (dbProcess.length == 0) {
-                return res.status("500").json("Invalid Process: Empty processes array");
-            }
-
-            let destinationUrl = "";
-            const reqBody = {}
-            // dbProcess.forEach(async (processItem) => {
-            for (const [key, value] of Object.entries(dbProcess[1])) {
-                console.log(key, value);
-                if (key.includes('url')) {
-                    destinationUrl = value
-                }
-                else {
-                    if (!!value.key)
-                        reqBody[value.key] = value.value
-                }
-            }
-            let response
-            // Send the request body to another URL via POST request
-            const client = new NtlmClient();
-
-            try {
-
-                httpntlm.post({
-                    url: destinationUrl,
-                    username: ERP_USERNAME,
-                    password: ERP_PASSWORD,
-                    workstation: 'domain',
-                    domain: '',
-                    body: JSON.stringify(reqBody)
-                }, function (err, response) {
-                    if (err) {
-                        console.log(err);
-                        return err
-                    };
-                    return res.json(response.body);
-                });
-
-            }
-            catch (err) {
-                console.log(err);
-                return res.status(500).json(err);
-            }
-
-        } catch (error) {
-            // Handle errors
-            res.status(500).json({ error: 'Internal server error' });
-        }
-    },
+const MJDController = {
 
     createCustomerDigicash: async (req, res, next) => {
         const pipeline = [
@@ -206,38 +147,38 @@ const ListenerController = {
         const createUrl = `http://10.243.132.26:7048/bc230/api/v2.0/companies(b3d91f15-510c-ef11-8101-00505684985d)/customers`;
         const requestBody = req.body;
         // Content-type: application/json
-        const dynamicsBody =  {
-            displayName: "",
-            type: "",
-            addressLine1: "",
-            addressLine2: "",
-            city: "",
-            state: "",
-            country: "",
-            postalCode: "",
-            phoneNumber: "",
-            email: ""
-        }
+        // const dynamicsBody =  {
+        //     displayName: "",
+        //     type: "",
+        //     addressLine1: "",
+        //     addressLine2: "",
+        //     city: "",
+        //     state: "",
+        //     country: "",
+        //     postalCode: "",
+        //     phoneNumber: "",
+        //     email: ""
+        // }
         
-        const errorMessages = []
-        for (let key in dynamicsBody) { 
-            if(!requestBody[key])
-            {
-                errorMessages.push(`'${key}' Property doesn't exist in the request!`)
-            }
-            else
-            {
-                dynamicsBody[key] = requestBody[key];
-            }
-        }
+        // const errorMessages = []
+        // for (let key in dynamicsBody) { 
+        //     if(!requestBody[key])
+        //     {
+        //         errorMessages.push(`'${key}' Property doesn't exist in the request!`)
+        //     }
+        //     else
+        //     {
+        //         dynamicsBody[key] = requestBody[key];
+        //     }
+        // }
 
         httpntlm.post({
             url: createUrl,
             username: ERP_USERNAME,
             password: ERP_PASSWORD,
             workstation: 'domain',
-            domain: 'mait',
-            body: JSON.stringify(dynamicsBody),
+            // domain: 'mait',
+            body: JSON.stringify(requestBody),
             headers:{
                 'Content-type': 'application/json'
               }
@@ -246,14 +187,96 @@ const ListenerController = {
                 console.log(err);
                 return err;
             };
-            return res.json(response.body);
+            if(response.statusCode == 200 || response.statusCode == 201)
+            {
+                return res.json(response.body);
+            }
+            console.log(response);
+            return res.status(500).json(response) 
         });
     },
 
-    sendAttachmentFile: async (req, res, next) => {
+    getDynamicsCustomer: async (req, res, next) => {
+        const customerId = req.params.id;
+        const getUrl = `http://10.243.132.26:7048/bc230/api/v2.0/companies(b3d91f15-510c-ef11-8101-00505684985d)/customers(${customerId})`;
 
+        httpntlm.get({
+            url: getUrl,
+            username: ERP_USERNAME,
+            password: ERP_PASSWORD,
+            workstation: 'domain',
+            domain: 'mait',
+            headers:{
+                'Content-type': 'application/json'
+              }
+        }, function (err, response) {
+            if (err) {
+                console.log(err);
+                return err;
+            };
+            if(response.statusCode == 200 || response.statusCode == 201)
+            {
+                return res.json(response.body);
+            }
+            console.log(response);
+            return res.status(500).json(response) 
+        });
+    },
+
+    updateDynamicsCustomer: async (req, res, next) => {
+        const customerId = req.params.id;
+        const createUrl = `http://10.243.132.26:7048/bc230/api/v2.0/companies(b3d91f15-510c-ef11-8101-00505684985d)/customers(${customerId})`;
+        const requestBody = req.body;
+        // Content-type: application/json
+        // const dynamicsBody =  {
+        //     displayName: "",
+        //     type: "",
+        //     addressLine1: "",
+        //     addressLine2: "",
+        //     city: "",
+        //     state: "",
+        //     country: "",
+        //     postalCode: "",
+        //     phoneNumber: "",
+        //     email: ""
+        // }
+        
+        // const errorMessages = []
+        // for (let key in dynamicsBody) { 
+        //     if(!requestBody[key])
+        //     {
+        //         errorMessages.push(`'${key}' Property doesn't exist in the request!`)
+        //     }
+        //     else
+        //     {
+        //         dynamicsBody[key] = requestBody[key];
+        //     }
+        // }
+
+        httpntlm.patch({
+            url: createUrl,
+            username: ERP_USERNAME,
+            password: ERP_PASSWORD,
+            workstation: 'domain',
+            // domain: 'mait',
+            body: JSON.stringify(requestBody),
+            headers:{
+                'Content-type': 'application/json'
+              }
+        }, function (err, response) {
+            if (err) {
+                console.log(err);
+                return err;
+            };
+            if(response.statusCode == 200 || response.statusCode == 201)
+            {
+                return res.json(response.body);
+            }
+            console.log(response);
+            return res.status(500).json(response) 
+        });
     }
 }
 module.exports = {
-    ListenerController
+    MJDController
 }
