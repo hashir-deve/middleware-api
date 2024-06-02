@@ -1,7 +1,5 @@
 const axios = require('axios');
-const Process = require('../models/process');
-const { saveAs } = require('file-saver');
-const NtlmClient = require('node-client-ntlm').NtlmClient;
+const CustomerInfo = require('../models/customerInfo');
 var httpntlm = require('httpntlm');
 
 const AUTHORIZATION = process.env["AUTHORIZATION"];
@@ -10,6 +8,8 @@ const CLIENT_ID = process.env["CLIENT_ID"];
 const CUSTOMER_ID = process.env["CUSTOMER_ID"];
 const ERP_USERNAME = process.env["ERP_USERNAME"];
 const ERP_PASSWORD = process.env["ERP_PASSWORD"];
+const DYNAMICS_BASE_URL = process.env["DYNAMICS_BASE_URL"];
+const DYNAMICS_COMPANY_ID = process.env["DYNAMICS_COMPANY_ID"];
 
 
 const MJDController = {
@@ -18,7 +18,7 @@ const MJDController = {
         const pipeline = [
             {
                 type: "GET",
-                url: "http://10.243.132.26:7048/bc230/api/v2.0/companies(b3d91f15-510c-ef11-8101-00505684985d)/documentAttachments(26f4c128-c612-ef11-9303-000c29b3ff67)/attachmentContent",
+                url: `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/documentAttachments(26f4c128-c612-ef11-9303-000c29b3ff67)/attachmentContent`,
                 description: "Get File from Dynamics 365"
             },
             {
@@ -28,7 +28,7 @@ const MJDController = {
             },
             {
                 type: "GET",
-                url: `http://10.243.132.26:7048/bc230/api/v2.0/companies(b3d91f15-510c-ef11-8101-00505684985d)/customers(${CUSTOMER_ID})`,
+                url: `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/customers(${CUSTOMER_ID})`,
                 description: "Get File Token from Dynamics 365"
             },
             {
@@ -144,7 +144,7 @@ const MJDController = {
     },
 
     createDynamicsCustomer: async (req, res, next) => {
-        const createUrl = `http://10.243.132.26:7048/bc230/api/v2.0/companies(b3d91f15-510c-ef11-8101-00505684985d)/customers`;
+        const createUrl = `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/customers`;
         const requestBody = req.body;
         // Content-type: application/json
         // const dynamicsBody =  {
@@ -198,14 +198,14 @@ const MJDController = {
 
     getDynamicsCustomer: async (req, res, next) => {
         const customerId = req.params.id;
-        const getUrl = `http://10.243.132.26:7048/bc230/api/v2.0/companies(b3d91f15-510c-ef11-8101-00505684985d)/customers(${customerId})`;
+        const getUrl = `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/customers(${customerId})`;
 
         httpntlm.get({
             url: getUrl,
             username: ERP_USERNAME,
             password: ERP_PASSWORD,
             workstation: 'domain',
-            domain: 'mait',
+            domain: '',
             headers:{
                 'Content-type': 'application/json'
               }
@@ -225,7 +225,7 @@ const MJDController = {
 
     updateDynamicsCustomer: async (req, res, next) => {
         const customerId = req.params.id;
-        const createUrl = `http://10.243.132.26:7048/bc230/api/v2.0/companies(b3d91f15-510c-ef11-8101-00505684985d)/customers(${customerId})`;
+        const createUrl = `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/customers(${customerId})`;
         const requestBody = req.body;
         // Content-type: application/json
         // const dynamicsBody =  {
@@ -275,7 +275,128 @@ const MJDController = {
             console.log(response);
             return res.status(500).json(response) 
         });
-    }
+    },
+
+    getDynamicsCustomerId: async (req, res, next) => {
+        try 
+        {
+            const customerInfoObject = await CustomerInfo.findOne({ 'customerId': requestUrl });
+            return res.json(customerInfoObject)
+        } 
+        catch (error)
+        {
+            return res.status(500).json(error)
+        }
+    },
+
+    getSalesInvoice: async (req, res, next) => {
+        try 
+        {
+            const salesInvoiceId = req.params.id;
+            const getUrl = `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/salesInvoices${salesInvoiceId}`;
+
+            httpntlm.get({
+                url: getUrl,
+                username: ERP_USERNAME,
+                password: ERP_PASSWORD,
+                workstation: 'domain',
+                domain: '',
+                headers:{
+                    'Content-type': 'application/json'
+                }
+            }, function (err, response) {
+                if (err) {
+                    console.log(err);
+                    return err;
+                };
+                if(response.statusCode == 200 || response.statusCode == 201)
+                {
+                    return res.json(response.body);
+                }
+                console.log(response);
+                return res.status(500).json(response) 
+            });
+        } 
+        catch (error) 
+        {
+            console.log(error);
+            return res.status(500).json(error) 
+        }
+    },
+
+    createSalesInvoice: async (req, res, next) => {
+        try
+        {
+
+            const createUrl = `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/salesInvoices`;
+            const requestBody = req.body;
+            
+            httpntlm.post({
+                url: createUrl,
+                username: ERP_USERNAME,
+                password: ERP_PASSWORD,
+                workstation: 'domain',
+                // domain: 'mait',
+                body: JSON.stringify(requestBody),
+                headers:{
+                    'Content-type': 'application/json'
+                }
+            }, function (err, response) {
+                if (err) {
+                    console.log(err);
+                    return err;
+                };
+                if(response.statusCode == 200 || response.statusCode == 201)
+                {
+                    return res.json(response.body);
+                }
+                console.log(response);
+                return res.status(500).json(response) 
+            });
+        }
+        catch (error)
+        {
+            console.log(error);
+            return res.status(500).json(error);            
+        }
+    },
+
+    updateSalesInvoice: async (req, res, next) => {
+        try{
+
+                const salesInvoiceId = req.params.id;
+                const createUrl = `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/salesInvoice${salesInvoiceId}`;
+            const requestBody = req.body;
+            
+            httpntlm.patch({
+                url: createUrl,
+                username: ERP_USERNAME,
+                password: ERP_PASSWORD,
+                workstation: 'domain',
+                // domain: 'mait',
+                body: JSON.stringify(requestBody),
+                headers:{
+                    'Content-type': 'application/json'
+                }
+            }, function (err, response) {
+                if (err) {
+                    console.log(err);
+                    return err;
+                };
+                if(response.statusCode == 200 || response.statusCode == 201)
+                {
+                    return res.json(response.body);
+                }
+                console.log(response);
+                return res.status(500).json(response) 
+            });
+        }
+        catch(error)
+        {
+            console.log(error);
+            return res.status(500).json(error);                    
+        }
+    },
 }
 module.exports = {
     MJDController
