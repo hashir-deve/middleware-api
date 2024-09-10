@@ -15,6 +15,65 @@ const DYNAMICS_COMPANY_ID = process.env["DYNAMICS_COMPANY_ID"];
 
 const ListenerController = {
 
+    // processRequest: async (req, res, next) => {
+    //     try {
+    //         const requestUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+    //         const requestBody = req.body;
+
+    //         const record = await Process.findOne({ 'sourceUrl': requestUrl });
+
+    //         const dbProcess = record.processes;
+
+    //         if (dbProcess.length == 0) {
+    //             return res.status("500").json("Invalid Process: Empty processes array");
+    //         }
+
+    //         let destinationUrl = "";
+    //         const reqBody = {}
+    //         // dbProcess.forEach(async (processItem) => {
+    //         for (const [key, value] of Object.entries(dbProcess[1])) {
+    //             console.log(key, value);
+    //             if (key.includes('url')) {
+    //                 destinationUrl = value
+    //             }
+    //             else {
+    //                 if (!!value.key)
+    //                     reqBody[value.key] = value.value
+    //             }
+    //         }
+    //         let response
+    //         // Send the request body to another URL via POST request
+    //         const client = new NtlmClient();
+
+    //         try {
+
+    //             httpntlm.post({
+    //                 url: destinationUrl,
+    //                 username: ERP_USERNAME,
+    //                 password: ERP_PASSWORD,
+    //                 workstation: 'domain',
+    //                 domain: '',
+    //                 body: JSON.stringify(reqBody)
+    //             }, function (err, response) {
+    //                 if (err) {
+    //                     console.log(err);
+    //                     return err
+    //                 };
+    //                 return res.json(response.body);
+    //             });
+
+    //         }
+    //         catch (err) {
+    //             console.log(err);
+    //             return res.status(500).json(err);
+    //         }
+
+    //     } catch (error) {
+    //         // Handle errors
+    //         res.status(500).json({ error: 'Internal server error' });
+    //     }
+    // },
+
     processRequest: async (req, res, next) => {
         try {
             const requestUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
@@ -23,51 +82,77 @@ const ListenerController = {
             const record = await Process.findOne({ 'sourceUrl': requestUrl });
 
             const dbProcess = record.processes;
+            
+            const dynamicFields = {}
+
+            for (let [key, value] of Object.entries(requestBody)) {
+                dynamicFields[key] = value;
+            }
 
             if (dbProcess.length == 0) {
                 return res.status("500").json("Invalid Process: Empty processes array");
             }
 
-            let destinationUrl = "";
-            const reqBody = {}
+            let destinationUrl = dbProcess[0].url;
+            let reqBody = {}
             // dbProcess.forEach(async (processItem) => {
-            for (const [key, value] of Object.entries(dbProcess[1])) {
-                console.log(key, value);
-                if (key.includes('url')) {
-                    destinationUrl = value
+                dbProcess[0].values.forEach((value) => {
+                    if(dynamicFields.hasOwnProperty(value.key))
+                    {
+                        value.value = dynamicFields[value];
+                        delete dynamicFields[value];
+                    }
+                    reqBody[value.key] = value.value;
+                })
+
+                try
+                {
+
+                    const response = await axios.post(destinationUrl, reqBody);
+                    console.log(response.data);
                 }
-                else {
-                    if (!!value.key)
-                        reqBody[value.key] = value.value
+                catch(error)
+                {
+                    console.error('Error making POST request:', error);
                 }
-            }
-            let response
-            // Send the request body to another URL via POST request
-            const client = new NtlmClient();
 
-            try {
+                for (const [key, value] of Object.entries(processItem.values)) {
+                    console.log(key, value);
+                    if (key.includes('url')) {
+                        destinationUrl = value
+                    }
+                    else {
+                        if (!!value.key)
+                            reqBody[value.key] = value.value
+                    }
+                }
+                let response
+                // Send the request body to another URL via POST request
+                const client = new NtlmClient();
 
-                httpntlm.post({
-                    url: destinationUrl,
-                    username: ERP_USERNAME,
-                    password: ERP_PASSWORD,
-                    workstation: 'domain',
-                    domain: '',
-                    body: JSON.stringify(reqBody)
-                }, function (err, response) {
-                    if (err) {
-                        console.log(err);
-                        return err
-                    };
-                    return res.json(response.body);
-                });
+                try {
 
-            }
-            catch (err) {
-                console.log(err);
-                return res.status(500).json(err);
-            }
+                    httpntlm.post({
+                        url: destinationUrl,
+                        username: ERP_USERNAME,
+                        password: ERP_PASSWORD,
+                        workstation: 'domain',
+                        domain: '',
+                        body: JSON.stringify(reqBody)
+                    }, function (err, response) {
+                        if (err) {
+                            console.log(err);
+                            return err
+                        };
+                        return res.json(response.body);
+                    });
 
+                }
+                catch (err) {
+                    console.log(err);
+                    return res.status(500).json(err);
+                }
+            // })
         } catch (error) {
             // Handle errors
             res.status(500).json({ error: 'Internal server error' });

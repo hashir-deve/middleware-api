@@ -18,10 +18,12 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatListModule } from '@angular/material/list';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { HttpClientModule } from  '@angular/common/http';
 import { Constants } from 'src/contants/contstants';
 import { ProcessCreateComponent } from './process-create/process-create.component';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @NgModule({
   declarations: [
@@ -41,7 +43,6 @@ import { ReactiveFormsModule } from '@angular/forms';
     MatCardModule,
     MatIconModule,
     MatTableModule,
-    MatButtonModule,
     MatIconModule,
     MatMenuModule,
     MatTooltipModule,
@@ -49,7 +50,9 @@ import { ReactiveFormsModule } from '@angular/forms';
     MatDialogModule,
     MatListModule,
     HttpClientModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatExpansionModule,
+    MatCheckboxModule
   ],
   providers: [Constants],
   bootstrap: [AppComponent],
