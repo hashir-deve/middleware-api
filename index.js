@@ -30,7 +30,7 @@ fs.readdirSync(routersPath).forEach((file) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}!`);
+  console.log(`Middleware app listening on port ${port}!`);
 });
 
 async function main(){
