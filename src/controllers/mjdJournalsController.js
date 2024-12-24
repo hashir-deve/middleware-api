@@ -5,6 +5,9 @@ const ERP_PASSWORD = process.env["ERP_PASSWORD"];
 const DYNAMICS_BASE_URL = process.env["DYNAMICS_BASE_URL"];
 const DYNAMICS_COMPANY_ID = process.env["DYNAMICS_COMPANY_ID"];
 const CreateJournalLinesUrl = `${DYNAMICS_BASE_URL}/companies(${DYNAMICS_COMPANY_ID})/journalLines`;
+const BalancingGlAccountNumber = `${process.env["BalancingGlAccountNumber"]}`
+const CommissionGlAccountNumber = `${process.env["CommissionGlAccountNumber"]}`
+const VatGlAccountNumber = `${process.env["VatGlAccountNumber"]}`
 
 const MJDJournalsController = {
     getJournals: async (req, res, next) => {
@@ -173,7 +176,8 @@ const MJDJournalsController = {
 }
 
 function parseRequestBody(body) {
-    const uniqueCode = Math.random().toString(36).substr(2, 10);
+    const uniqueCode = body[0].internalRefNumber;
+    console.log('Code Batch', uniqueCode);
     const requestObject = {
         journal: {
             code: uniqueCode,
@@ -182,53 +186,59 @@ function parseRequestBody(body) {
         journalLines: []
     }
 
-    body.forEach(journalLine => {
-        const creationTimestamp = journalLine.creationDate;
-        const creationDate = new Date(creationTimestamp);
-        const formattedCreationDate = creationDate.toLocaleDateString('en-CA'); // 'en-CA' outputs in YYYY-MM-DD format
-        let accountType = 'Customer'
-        let balancingAccountType = 'Customer'
+    let sourceWalletCodeChecked = false;
 
-        switch (journalLine.sourceWalletCode) {
-            case '000000':
-                accountType = 'Bank Account'
-                break;
-            case 'COMMISSION_CREDIT':
-                accountType = 'G/L Account'
-                break;
-            case 'VAT':
-                accountType = 'G/L Account'
-                break;
-            default:
-                break;
-        }
+    body.forEach((journalLine, index) => {
+        if (journalLine.amount != 0.00) {
+            const creationTimestamp = journalLine.creationDate;
+            const creationDate = new Date(creationTimestamp);
+            const formattedCreationDate = creationDate.toLocaleDateString('en-CA'); // 'en-CA' outputs in YYYY-MM-DD format
+            let accountType = 'G/L Account';
+            let balancingAccountType = 'G/L Account';
+            let accountNumber = BalancingGlAccountNumber;
+            let balancingAccountNumber = '';
 
-        switch (journalLine.destinationWalletCode) {
-            case 'COMMISSION_CREDIT':
+            if (index == 0){
+                if (journalLine.sourceWalletCode == '000000'){
+                    accountType = "Bank Account"
+                }
+                else 
+                {
+                    accountType = "Customer"
+                }
+                accountNumber = journalLine.sourceWalletCode
+                    
                 balancingAccountType = 'G/L Account'
-                break;
-            case 'VAT':
-                balancingAccountType = 'G/L Account'
-                break;
-            default:
-                break;
+                balancingAccountNumber = BalancingGlAccountNumber
+            }
+            else if(index === 1){
+                balancingAccountType = 'Customer'
+                balancingAccountNumber = journalLine.destinationWalletCode
+            }
+            else if(index === 2){
+                balancingAccountNumber = CommissionGlAccountNumber;
+            }
+            else if(index === 3){
+                balancingAccountNumber = VatGlAccountNumber;
+            }
+            
+            const parsedJournalLine = {
+                id: DYNAMICS_COMPANY_ID,
+                lineNumber: journalLine.id,
+                postingDate: formattedCreationDate,
+                documentNumber: journalLine.internalRefNumber,
+                externalDocumentNumber: journalLine.externalRefNumber,
+                accountType: accountType,
+                accountNumber: accountNumber,
+                balanceAccountType: balancingAccountType,
+                balancingAccountNumber: balancingAccountNumber,
+                amount: journalLine.amount
+            }
+            requestObject.journalLines.push(parsedJournalLine)
         }
-
-        const parsedJournalLine = {
-            id: DYNAMICS_COMPANY_ID,
-            lineNumber: journalLine.id,
-            postingDate: formattedCreationDate,
-            documentNumber: journalLine.internalRefNumber,
-            externalDocumentNumber: journalLine.externalRefNumber,
-            accountType: accountType,
-            accountNumber: journalLine.sourceWalletCode,
-            balanceAccountType: balancingAccountType,
-            balancingAccountNumber: journalLine.destinationWalletCode,
-            amount: journalLine.amount
-        }
-        requestObject.journalLines.push(parsedJournalLine)
     });
 
+    console.log(requestObject);
     return requestObject;
 }
 
@@ -259,7 +269,7 @@ function createJournalLineRecursive(body, journalId, currentIndex, responseArray
 
             if (currentIndex == size - 1)
                 return res.json(responseArray);
-            
+
             createJournalLineRecursive(body, journalId, ++currentIndex, responseArray, size, res)
         }
         else {
